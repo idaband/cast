@@ -28,18 +28,34 @@ class SitchTrackService(object):
 
         #initit needs to call me
     def setInitialSwitchState(self):
-        self.switchTrack(1,True)
-        self.switchTrack(2,True)
-        self.switchTrack(3,True)
-        self.switchTrack(4,True)
+        self.switchTrack(1)
+        time.sleep(1)
+        self.switchTrack(2)
+        time.sleep(1)
+        self.switchTrack(3)
+        time.sleep(1)
+        self.switchTrack(4)
+        time.sleep(3)
+        self.switchTrack(1,False)
+        return
+
+
+    def switchInnerLoupeToOuterLoop(self):
+        
         return
 
     #
     def switchTrack(self,switchNumber,through=True):
         #if through (true) then switch number minus 1 = the refering 0 based relay number
-        relayToSwitch = switchNumber - 1 if through else switchNumber -  0
+        relayToSwitch = (switchNumber*2) - 1 if through else (switchNumber*2) -  0
         self.switchRelay(relayToSwitch)
         return
+
+
+        # 1 1-2
+        # 2 3-4
+        # 3 5-6
+        # 4 7-8
 
 
     def switchRelay_thread(self,relayNumber):
@@ -49,6 +65,9 @@ class SitchTrackService(object):
         return
     
     def switchRelay(self,relayNumber):
-        x=threading.Thread(target=self.switchRelay,args=(relayNumber))
+        x=threading.Thread(target=self.switchRelay_thread,args=(relayNumber,))
         x.start()
 
+
+
+bob = SitchTrackService()
