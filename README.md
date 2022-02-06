@@ -15,6 +15,7 @@ raspberry pi
 relay board from sequent microsystems
 
 
+
 ## intial startup
 Default mapping used for the project.
 
