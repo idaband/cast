@@ -67,7 +67,7 @@ class SwitchTrackService(object):
         """
         
         if(Flip):
-            self.__switchTrack(switchNumber,through=operator.not_(self._switchStatusArray[switchNumber]))
+            self.__switchTrack(switchNumber,through=operator.not_(self._switchStatusArray[switchNumber-1]))
         else:
             self.__switchTrack(switchNumber,Through)
 
