@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 import math as bob
+import threading
 from SwitchTrackService import SwitchTrackService
 
 
@@ -10,7 +11,7 @@ class BeamBreakerService(object):
     def __init__(self):
         self._holding_time = 10.0
         self._inHold = False
-        self._startHold = time.time()
+        self._startHold = -1.0
         self._BEAM_PIN = 17
         self._lastBreakTime = time.time()
         self._broke = False
@@ -50,15 +51,14 @@ class BeamBreakerService(object):
         if GPIO.input(self._BEAM_PIN):
         
             print("beam unbroken")
-            self._broke = False
-            self.__holdingLogic(self._currentTime)
-        
+            self._broke = False            
         else:
             self._broke= True
             print("beam broken")
-            self.__holdingLogic(self._currentTime)
+        
+        self.__holdingLogic(self._currentTime)
        
-    def __holdingLogic(self, passedInTime):
+    def __holdingLogic(self, passedInTime):        
         # global inHold
         # global stopped
         # global broke
@@ -66,9 +66,15 @@ class BeamBreakerService(object):
     
         if(self._inHold == False ):
             return
+        if(self._startHold <0 and self._broke == True):
+            self._startHold = time.time()
+            x = lambda a: print("hello")
+            t = threading.Timer(20.0,x)
+            t.start()
+        
     
         #if bean has been open for more than 5 seconds release if in hold mode.    
-        if(((passedInTime - self._startHold) > self._holding_time) & self._inHold):
+        if(((passedInTime - self._startHold) > self._holding_time) and self._inHold):
             self._inHold = False            #not sure i want to auto release the inHold
             self._stopped = False
             return
