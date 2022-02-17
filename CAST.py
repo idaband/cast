@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 from SwitchTrackService import SwitchTrackService
+from BeamService import BeamBreakerService
 
 service = SwitchTrackService()
+beamMeUp = BeamBreakerService()
 
 
 
@@ -23,6 +25,11 @@ X     X                                            X     X
     return art;
 
 
+def __doSomwthingOnHold():
+    print("FULL ROUND TRIP YEASSSSSSSSSSSSSSSSSS")
+    service.openSwitchInnerLoupeToOuterLoop()
+
+
 def __help():
     """HELP MENU
     """
@@ -38,6 +45,9 @@ coi(Close outside to inside loop)"""
 print (__art());
 
 print(__help())
+
+beamMeUp.AddSubscribersForHoldEvent(__doSomwthingOnHold)
+
 
 while(True):
     command = input(": ")
@@ -79,6 +89,8 @@ while(True):
     
     elif(command.lower()=="r"):
         service.reset()
+    elif(command.lower()=="hold"):
+        beamMeUp.activateHoldTrainAndSwitch(3)
 
     else:
         print("""
