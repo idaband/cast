@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 import math as bob
-import threading
+# import threading
 #from SwitchTrackService import SwitchTrackService
 from Event import Event
 
@@ -26,16 +26,29 @@ class BeamBreakerService(object):
         GPIO.add_event_detect(self._BEAM_PIN, GPIO.BOTH, callback=self.__break_beam_callback)
         
         self._OnTrainHeld = Event()
+        self._OnTrainStop = Event()
+
         
-    def __TrainHeld(self):
-        self._OnTrainHeld()
+    def __TrainHeld(self,number):
+        self._OnTrainHeld(number)
         
     def AddSubscribersForHoldEvent(self,objMethod):
         self._OnTrainHeld += objMethod
          
     def RemoveSubscribersForHoldEvent(self,objMethod):
         self._OnTrainHeld -= objMethod
+
+
+    def __TrainStop(self,number):
+        self._OnTrainStop(number)
         
+    def AddSubscribersForTrainStopEvent(self,objMethod):
+        self._OnTrainStop += objMethod
+         
+    def RemoveSubscribersForTrainStopEvent(self,objMethod):
+        self._OnTrainStop -= objMethod
+    
+         
     def __del__(self):
         GPIO.cleanup()
 
@@ -56,23 +69,26 @@ class BeamBreakerService(object):
             self._broke= True
             print("beam broken")
         
-        self.__holdingLogic(self._currentTime)
+        self.__holdingLogic(self._currentTime,channel)
        
-    def __holdingLogic(self, passedInTime):        
+    def __holdingLogic(self, passedInTime,channel):        
     
         if(self._inHold == False ):
             return
         if(self._startHold <0 and self._broke == True):
             self._startHold = time.time()
-            x = lambda a: print("hello")
-            t = threading.Timer(20.0,x)
-            t.start()
+            self.__TrainStop(self._switchNumbers.index(channel)+1)
+            # x = lambda a: print("hello")
+            # t = threading.Timer(20.0,x)
+            # t.start()
         
     
         #if bean has been open for more than 5 seconds release if in hold mode.    
         if(((passedInTime - self._startHold) > self._holding_time) and self._inHold):
             self._inHold = False            #not sure i want to auto release the inHold
             self._stopped = False
+            self._startHold = -1.0
+            self._broke  = False
             return
         
         
@@ -82,10 +98,11 @@ class BeamBreakerService(object):
         
         if(bob.ceil(passedInTime - self._startHold) >= self._holding_time ):
             print("train is stopped and waiting")
-            self._inHold = True
+            self._inHold = False
             self._broke = False
             self._stopped=True
-            self.__TrainHeld()
+            self.__TrainHeld(self._switchNumbers.index(channel)+1)
+            self._startHold = -1.0
             # service.openSwitchInnerLoupeToOuterLoop()
         else:
             print("START the timer over bouncing")
@@ -103,7 +120,7 @@ class BeamBreakerService(object):
             return
     
         self._inHold=True
-        self._startHold = time.time()
+        #self._startHold = time.time()
 
 def doIt():    
 

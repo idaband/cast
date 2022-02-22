@@ -10,16 +10,31 @@ from BeamService import BeamBreakerService
 class SwitchTrackService(object):
 
     def __init__(self):        
-        # self._trackSwitchThrough1=True
-        # self._trackSwitchThrough2=True
-        # self._trackSwitchThrough3=True
-        # self._trackSwitchThrough4=True
-        # self._switchStatusArray = [self._trackSwitchThrough1,self._trackSwitchThrough2,self._trackSwitchThrough3,self._trackSwitchThrough4]
         self._switchStatusArray = [True,True,True,True]
 
         self._relay = relay8()
 
+        self._onTrackSwtched = Event()
+
+        self._beamMeUp = BeamBreakerService()
+
+        self._beamMeUp.AddSubscribersForHoldEvent(self.__test)
+        self._beamMeUp.AddSubscribersForTrainStopEvent(self.__stopTrain)
+
       #todo put in for production  self.__setInitialSwitchState()
+
+    def __stopTrain(self, switchNumber):
+        print(f"STOP THE TRAIN on switch:: {switchNumber}")
+        pass
+
+    def __trackSwitched(self, switchNumber):
+        self._onTrackSwtched(switchNumber)
+
+    def AddSubscriberForTrackSwitched(self,objMethod):
+        self._onTrackSwtched += objMethod
+    
+    def RemoveSubscriberForTrackSwitched(self,objtMethod):
+        self._onTrackSwtched -= objtMethod
 
         #initit needs to call me
     def __setInitialSwitchState(self):
@@ -33,14 +48,19 @@ class SwitchTrackService(object):
         self._switchStatusArray = [True,True,True,True]
         return
 
+    def prepareToHold(self, switchNumber):
+        self._beamMeUp.activateHoldTrainAndSwitch(switchNumber)
+        
+    def __test(self,switchNumber):
+        print(f"came back with switch Number {switchNumber}")
+        if(switchNumber == 3):
+            self.openSwitchInnerLoupeToOuterLoop()
 
     def openSwitchInnerLoupeToOuterLoop(self):
         self.__switchTrack(3,False)
         time.sleep(1)
         self.__switchTrack(4,False)
-        # self._switchStatusArray[2] = False
-        # time.sleep(1)
-        # self._switchStatusArray[3] = False
+        self.__trackSwitched(3)
         return
 
     def closeSwitchInnerLoupeToOuterLoop(self):
